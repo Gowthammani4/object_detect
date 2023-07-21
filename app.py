@@ -1,11 +1,7 @@
-import io
 from flask import Flask, json, jsonify,request
 from pymongo import MongoClient
-import base64
 app = Flask(__name__)
-from PIL import Image
-import re
-import cv2
+
 
 # Replace 'YOUR_MONGODB_CONNECTION_STRING' with your actual MongoDB connection string
 mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
@@ -16,10 +12,11 @@ collection = db['img_data']  # Replace 'images' with your collection name
 
 def save_image():
     # Create a new document for the image
-    image_bytes=request.args.get("image")
-    print(image_bytes)
-    
-    image_doc = {"image_id":12,
+    # image_bytes=request.args.get("image")
+    # print(image_bytes)
+    image_file = request.files['image']
+    image_bytes = image_file.read()
+    image_doc = {"image_id":34,
         'image_data': image_bytes
     }
 
