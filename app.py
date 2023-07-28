@@ -1,9 +1,8 @@
 from typing import Dict
-import flet
+import flet as ft
 from ultralytics import YOLO
 from flet import *
 import cv2
-app=flet(__name__)
 def image_predict(name):
     file_upload=f"uploads/{name}"
     classNames={0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'airplane', 5: 'bus', 6: 'train', 7: 'truck', 
@@ -101,5 +100,4 @@ def main(page: Page):
     )
     
 
-if __name__ == '__main__':
-    app(target=main, upload_dir="uploads",assets_dir="assets", view=WEB_BROWSER)
+ft.app(target=main, upload_dir="uploads",assets_dir="assets", view=ft.WEB_BROWSER)
