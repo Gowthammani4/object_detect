@@ -1,6 +1,4 @@
-flet==0.8.2
 gunicorn==21.2.0
-typing==3.10.0
 ultralytics==8.0.109
 Flask==2.2.2
 numpy==1.21.5
