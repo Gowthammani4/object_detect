@@ -1,10 +1,26 @@
-from typing import Dict
-import flet as ft
+import base64
+from flask import Flask, json,request
+from pymongo import MongoClient
 from ultralytics import YOLO
-from flet import *
 import cv2
-def image_predict(name):
-    file_upload=f"uploads/{name}"
+import base64
+from io import BytesIO
+from PIL import Image
+
+
+app = Flask(__name__)
+
+@app.route('/save', methods=["POST","GET"])
+
+def save_image():
+    data = request.get_json()
+    a=data["text"]
+    b=data["name"]
+    bytes_decoded=base64.b64decode(a)
+    img=Image.open(BytesIO(bytes_decoded))
+    img=img.convert('RGB')
+    img.save(f'{b}.jpg')
+    img=cv2.imread(f"{b}.jpg")
     classNames={0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'airplane', 5: 'bus', 6: 'train', 7: 'truck', 
     8: 'boat', 9: 'traffic light', 10: 'fire hydrant', 11: 'stop sign', 12: 'parking meter', 13: 'bench', 
     14: 'bird', 15: 'cat', 16: 'dog', 17: 'horse', 18: 'sheep', 19: 'cow', 20: 'elephant', 21: 'bear', 
@@ -18,9 +34,8 @@ def image_predict(name):
       65: 'remote', 66: 'keyboard', 67: 'cell phone', 68: 'microwave', 69: 'oven',
        70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 
     74: 'clock', 75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
-    img=cv2.imread(file_upload)
     model=YOLO("yolov8n.pt",)
-    results=model(file_upload)
+    results=model(f"{b}.jpg")
     for i in results:
         boxes=i.boxes
         for box in boxes:
@@ -34,70 +49,36 @@ def image_predict(name):
             t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
             c2 = x1 + t_size[0], y1 - t_size[1] - 3
             cv2.rectangle(img, (x1,y1), c2, [255,0,255], -1, cv2.LINE_AA)  # filled
-            cv2.putText(img, label, (x1,y1-2),0, 1,[255,255,255], thickness=1,lineType=cv2.LINE_AA)
-            cv2.imwrite("assets/predicted.jpeg",img)
-            print("image predicted")
+            cv2.putText(img, label, (x1,y1-2),0, 1,[255,255,255], thickness=1,lineType=cv2.LINE_AA)    
+    cv2.imwrite("predicted.jpg",img)
+    with open("predicted.jpg", "rb") as image_file:
+            image_binary = image_file.read()
+    a= base64.b64encode(image_binary).decode("utf-8")
+    mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
+    db = mongo_client['testing']  
+    collection = db['flet_img']  
+    collection.insert_one({
+            "name":b,
+            "img":a
+        })
+    da=retrieve_image(b)
+    return da
 
+def retrieve_image(name):
+    mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
+    db = mongo_client['testing']  
+    collection = db['flet_img'] 
+    query = {"name": name}
+    image_doc = collection.find_one(query)
+    image_bytes = image_doc['img']
+    print(f"The image_bytes: {image_bytes}")
+    image_base64=image_bytes;
+    image_data = {
+        "Name":image_doc["name"],
+            'image_base64': image_base64
+        }
+    json_data = json.dumps(image_data)
+    return json_data
 
-
-def main(page: Page):
-    prog_bars: Dict[str, ProgressRing] = {}
-    files = Ref[Column]()
-    upload_button = Ref[ElevatedButton]()
-
-    def file_picker_result(e: FilePickerResultEvent):
-        upload_button.current.disabled = True if e.files is None else False
-        prog_bars.clear()
-        files.current.controls.clear()
-        if e.files is not None:
-            for f in e.files:
-                prog = ProgressRing(value=0, bgcolor="#eeeeee", width=20, height=20)
-                prog_bars[f.name] = prog
-                files.current.controls.append(Row([prog, Text(f.name)]))
-        page.update()
-
-    def on_upload_progress(e: FilePickerUploadEvent):
-        prog_bars[e.file_name].value = e.progress
-        prog_bars[e.file_name].update()
-
-    file_picker = FilePicker(on_result=file_picker_result, on_upload=on_upload_progress)
-
-    def upload_files(e):
-        uf = []
-        if file_picker.result is not None and file_picker.result.files is not None:
-            for f in file_picker.result.files:
-                uf.append(
-                    FilePickerUploadFile(
-                        f.name,
-                        upload_url=page.get_upload_url(f.name, 600),
-                    )
-                )
-            file_picker.upload(uf)
-        image_predict(file_picker.result.files[0].name)
-        page.update()
-        page.add(Image(src="assets/predicted.jpeg",height=800,width=800))
-        print("image displaying")
-        page.update()
-
-    # hide dialog in a overlay
-    page.overlay.append(file_picker)
-
-
-    page.add(
-        ElevatedButton(
-            "Select files...",
-            icon=icons.FOLDER_OPEN,
-            on_click=lambda _: file_picker.pick_files(allow_multiple=True),
-        ),
-        Column(ref=files),
-        ElevatedButton(
-            "Upload",
-            ref=upload_button,
-            icon=icons.UPLOAD,
-            on_click=upload_files,
-            disabled=True,
-        ),
-    )
-    
-
-ft.app(target=main, upload_dir="uploads",assets_dir="assets", view=ft.WEB_BROWSER)
+if __name__ == '__main__':
+    app.run()
