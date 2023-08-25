@@ -77,7 +77,7 @@ def retrieve_image(name):
         "Name":image_doc["name"],
             'image_base64': image_base64
         }
-    json_data = json.dumps(image_data)
+    json_data = image_data
     return json_data
 
 if __name__ == '__main__':
