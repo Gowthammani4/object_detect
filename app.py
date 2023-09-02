@@ -63,7 +63,7 @@ def save_image():
             "img":a
         })
     da=retrieve_image(b)
-    return da
+    return jsonify(da)
 
 def retrieve_image(name):
     mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
