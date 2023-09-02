@@ -15,7 +15,7 @@ app = Flask(__name__)
 def save_image():
     data = request.get_json()
     a=data["text"]
-    b=data["name"]
+    b="Mani_Gowtham"
     bytes_decoded=base64.b64decode(a)
     img=Image.open(BytesIO(bytes_decoded))
     img=img.convert('RGB')
@@ -57,8 +57,8 @@ def save_image():
     mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
     db = mongo_client['testing']  
     collection = db['flet_img']  
-    collection.replace_one(
-        {"name":"Gowtham_test"},{
+    collection.insert_one(
+        {
             "name":b,
             "img":a
         })
