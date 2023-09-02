@@ -57,7 +57,8 @@ def save_image():
     mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
     db = mongo_client['testing']  
     collection = db['flet_img']  
-    collection.insert_one({
+    collection.replace_one(
+        {"name":"Gowtham_test"},{
             "name":b,
             "img":a
         })
