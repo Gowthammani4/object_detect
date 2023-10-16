@@ -15,7 +15,7 @@ app = Flask(__name__)
 def save_image():
     data = request.get_json()
     a=data["text"]
-    b="Mani_Gowtham"
+    b=data["name"]
     bytes_decoded=base64.b64decode(a)
     img=Image.open(BytesIO(bytes_decoded))
     img=img.convert('RGB')
