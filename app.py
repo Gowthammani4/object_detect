@@ -54,7 +54,7 @@ def save_image():
     with open("predicted.jpg", "rb") as image_file:
             image_binary = image_file.read()
     a= base64.b64encode(image_binary).decode("utf-8")
-    mongo_client = MongoClient('mongodb+srv://Gowtham:Mani6166@cluster0.nbfkzpu.mongodb.net/')
+    mongo_client = MongoClient('')
     db = mongo_client['testing']  
     collection = db['flet_img']  
     collection.insert_one(
